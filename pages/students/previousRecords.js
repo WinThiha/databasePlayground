@@ -1,7 +1,7 @@
 import useFetchData from '@/hooks/fetchData'
 import React, { useState } from 'react'
 import styles from '@/components/tailwind.module.css'
-import { collection, doc, getDocs, onSnapshot, query, where } from 'firebase/firestore'
+import { collection, doc, getDocs, onSnapshot, orderBy, query, where } from 'firebase/firestore'
 import { db } from '@/firebase'
 import moment from 'moment'
 import { data } from 'autoprefixer'
@@ -23,6 +23,19 @@ querySnapshot.forEach((doc) => {
   console.log(doc.data().present_dates.Present)
 })
     }
+    const showAllFromDateHandler = async (date)=>{
+        const stuRef = collection(db,'Students')
+        const q=query(stuRef,orderBy(`present_dates.${date}`))
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+          // doc.data() is never undefined for query doc snapshots
+          onSnapshot(q, (querySnapshots) => {
+            setFilteredDate(querySnapshots.docs.map(doc => ({ ...doc.data(), id: doc.id, timestamp: doc.data().timestamp?.toDate().getTime() })))
+            console.log(doc.data())
+          })
+          
+        })
+    }
     const filterDateHandler = async (status)=>{
         setFilteredDate([])
         const stuRef = collection(db,'Students')
@@ -41,10 +54,10 @@ querySnapshot.forEach((doc) => {
     <div className={styles.div1}>
         <h2>By Date</h2>
         
-                <input className={styles.inputbox} onChange={(e)=>setDate(e.currentTarget.value)}></input>
+                <input className={styles.inputbox} onChange={(e)=>{setDate(e.currentTarget.value)}}></input>
                 <input className={styles.inputbox} onChange={(e)=>setStatus(e.currentTarget.value)}></input>
-
-        <button className={styles.button} onClick={()=>filterDateHandler(status)}>Show Present Students on Date</button>
+<button className={styles.button}onClick={()=>showAllFromDateHandler(date)}>Show All</button>
+        <button className={styles.button} onClick={()=>filterDateHandler(status)}>Show Absent or Present</button>
 
         <h2>By Name</h2>
         <input className={styles.inputbox} onChange={(e)=>setName(e.currentTarget.value)}></input>
